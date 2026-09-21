@@ -229,6 +229,7 @@
                                 <option value="ALL">-- Tất cả lĩnh vực --</option>
                                 <option value="Quản lý và VHKT" selected>Quản lý và VHKT</option>
                                 <option value="Dự kiến công việc">Dự kiến công việc</option>
+                                <option value="Đề xuất/Kiến nghị">Đề xuất/Kiến nghị</option>
                             </select>
                         </div>
                     </div>
@@ -251,11 +252,12 @@
                             <select id="taskFieldInput" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs font-bold text-gray-800 focus:ring-vnpt">
                                 <option value="Quản lý và VHKT">Quản lý và VHKT</option>
                                 <option value="Dự kiến công việc">Dự kiến công việc</option>
+                                <option value="Đề xuất/Kiến nghị">Đề xuất/Kiến nghị</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 mb-1">Nội dung chi tiết công việc trong tuần</label>
-                            <textarea id="taskContentInput" rows="3" class="w-full p-3 bg-white border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-vnpt focus:border-vnpt" placeholder="Nhập chi tiết nội dung công việc quản lý, vận hành kỹ thuật hoặc công việc dự kiến..."></textarea>
+                            <textarea id="taskContentInput" rows="3" class="w-full p-3 bg-white border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-vnpt focus:border-vnpt" placeholder="Nhập chi tiết nội dung công việc quản lý, vận hành kỹ thuật, dự kiến hoặc đề xuất kiến nghị..."></textarea>
                         </div>
                     </div>
 
@@ -401,7 +403,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC DỒNG BỘ APPS SCRIPT -->
+    <!-- JAVASCRIPT LOGIC ĐỒNG BỘ APPS SCRIPT -->
     <script>
         // CẤU HÌNH API GOOGLE APPS SCRIPT
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziyVzQ3ZgddoQZUC_ZqHqaZCx1RyBQIwlAhPjdsyKI9VwEYZob2CG783hQ2uzc6BaT/exec";
@@ -421,6 +423,10 @@
             focusTasks: [],
             documents: []
         };
+
+        // Lưu danh sách đang hiển thị trên giao diện phục vụ xuất Excel
+        let currentFilteredTasks = [];
+        let currentFilteredDocs = [];
 
         function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
@@ -581,7 +587,7 @@
 
             let list = db.focusTasks || [];
 
-            let filtered = list.filter(task => {
+            currentFilteredTasks = list.filter(task => {
                 const matchesField = (selectedField === 'ALL') || (task.field === selectedField);
                 const matchesSearch = !searchText || 
                     (task.content && String(task.content).toLowerCase().includes(searchText)) ||
@@ -603,9 +609,9 @@
                 return matchesField && matchesSearch && matchesTime;
             });
 
-            document.getElementById('focusCountBadge').textContent = `${filtered.length} công việc`;
+            document.getElementById('focusCountBadge').textContent = `${currentFilteredTasks.length} công việc`;
 
-            if (filtered.length === 0) {
+            if (currentFilteredTasks.length === 0) {
                 container.innerHTML = `
                     <div class="p-8 bg-gray-50 rounded-2xl border border-dashed border-gray-300 text-center text-xs text-gray-400">
                         <i class="fas fa-inbox text-3xl mb-2 text-gray-300 block"></i>
@@ -614,10 +620,13 @@
                 return;
             }
 
-            filtered.forEach((task) => {
-                let fieldBadge = task.field === 'Quản lý và VHKT' 
-                    ? 'bg-blue-50 text-vnpt border border-blue-200' 
-                    : 'bg-purple-50 text-purple-700 border border-purple-200';
+            currentFilteredTasks.forEach((task) => {
+                let fieldBadge = 'bg-blue-50 text-vnpt border border-blue-200';
+                if (task.field === 'Dự kiến công việc') {
+                    fieldBadge = 'bg-purple-50 text-purple-700 border border-purple-200';
+                } else if (task.field === 'Đề xuất/Kiến nghị') {
+                    fieldBadge = 'bg-amber-50 text-amber-700 border border-amber-200';
+                }
 
                 const div = document.createElement('div');
                 div.className = 'bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-vnpt/40 transition';
@@ -656,7 +665,7 @@
 
             let list = db.documents || [];
 
-            let filteredDocs = list.filter(doc => {
+            currentFilteredDocs = list.filter(doc => {
                 const matchesWeek = !doc.week || doc.week === selectedWeek;
                 const matchesSearch = !searchText || 
                     (doc.num && String(doc.num).toLowerCase().includes(searchText)) || 
@@ -665,12 +674,12 @@
                 return matchesWeek && matchesSearch;
             });
 
-            if (filteredDocs.length === 0) {
+            if (currentFilteredDocs.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-xs text-gray-400">Không tìm thấy văn bản phù hợp.</td></tr>`;
                 return;
             }
 
-            filteredDocs.forEach(doc => {
+            currentFilteredDocs.forEach(doc => {
                 let statusBadge = 'bg-blue-100 text-blue-800';
                 if (doc.status === 'Đã hoàn thành') statusBadge = 'bg-emerald-100 text-emerald-800';
                 if (doc.status === 'Chưa hoàn thành') statusBadge = 'bg-red-100 text-red-800';
@@ -781,42 +790,63 @@
             }
         }
 
-        // --- EXPORT TO EXCEL ---
+        // --- EXPORT TO EXCEL ĐƯỢC CẬP NHẬT THEO FORM GIAO DIỆN WEB ---
         function exportToExcel() {
             const wb = XLSX.utils.book_new();
 
+            // 1. DỮ LIỆU CÔNG VIỆC TRỌNG TÂM (LẤY ĐÚNG DỮ LIỆU ĐANG LỌC TRÊN WEB)
             const focusData = [
                 ['BÁO CÁO CÔNG VIỆC TRỌNG TÂM TRONG TUẦN VÀ DỰ KIẾN - VNPT NGHỆ AN'],
                 ['Thời gian xuất:', new Date().toLocaleString('vi-VN')],
                 [],
-                ['STT', 'Lĩnh vực', 'Tuần/Thời gian', 'Nội dung chi tiết công việc', 'Người cập nhật'],
-                ...(db.focusTasks || []).map((t, idx) => [
+                ['STT', 'Lĩnh vực', 'Thời gian', 'Nội dung chi tiết công việc trong tuần', 'Người cập nhật'],
+                ...currentFilteredTasks.map((t, idx) => [
                     idx + 1, 
                     t.field, 
                     t.week || '2026-W38', 
                     t.content, 
-                    t.author
+                    t.author || 'User'
                 ])
             ];
             const ws1 = XLSX.utils.aoa_to_sheet(focusData);
+
+            // Điều chỉnh độ rộng cột Excel chuẩn đẹp
+            ws1['!cols'] = [
+                { wch: 6 },   // STT
+                { wch: 25 },  // Lĩnh vực
+                { wch: 15 },  // Thời gian
+                { wch: 70 },  // Nội dung
+                { wch: 18 }   // Người cập nhật
+            ];
             XLSX.utils.book_append_sheet(wb, ws1, "CongViecTrongTam");
 
+            // 2. DỮ LIỆU THEO DÕI VĂN BẢN (LẤY ĐÚNG DỮ LIỆU ĐANG LỌC TRÊN WEB)
             const docData = [
                 ['BÁO CÁO THEO DÕI CHỈ ĐẠO & VĂN BẢN DỊCH VỤ'],
                 ['Thời gian xuất:', new Date().toLocaleString('vi-VN')],
                 [],
-                ['STT', 'Số văn bản', 'Nội dung chỉ đạo', 'Hạn hoàn thành', 'Thực hiện trong tuần', 'Tiến độ', 'Ngày hoàn thành'],
-                ...(db.documents || []).map((d, idx) => [
+                ['STT', 'Số văn bản', 'Nội dung văn bản', 'Hạn hoàn thành', 'Nội dung thực hiện trong tuần', 'Tiến độ', 'Ngày hoàn thành'],
+                ...currentFilteredDocs.map((d, idx) => [
                     idx + 1,
                     d.num, 
                     d.content, 
                     d.deadline, 
-                    d.weeklyProgress, 
+                    d.weeklyProgress || '-', 
                     d.status, 
-                    d.finishDate
+                    d.finishDate || '-'
                 ])
             ];
             const ws2 = XLSX.utils.aoa_to_sheet(docData);
+
+            ws2['!cols'] = [
+                { wch: 6 },   // STT
+                { wch: 18 },  // Số VB
+                { wch: 45 },  // Nội dung VB
+                { wch: 15 },  // Hạn hoàn thành
+                { wch: 45 },  // Thực hiện trong tuần
+                { wch: 18 },  // Tiến độ
+                { wch: 15 }   // Ngày hoàn thành
+            ];
             XLSX.utils.book_append_sheet(wb, ws2, "TheoDoiVanBan");
 
             XLSX.writeFile(wb, `BaoCao_VNPT_CongViec_VanBan_${new Date().toISOString().slice(0,10)}.xlsx`);
