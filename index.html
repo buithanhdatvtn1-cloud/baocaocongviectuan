@@ -135,7 +135,6 @@
         <header class="bg-vnpt text-white shadow-lg sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
-                    <!-- BRANDING LOGO -->
                     <div class="flex items-center gap-3">
                         <div class="bg-white p-1.5 rounded-xl shadow-md flex items-center justify-center">
                             <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -154,7 +153,6 @@
                         </div>
                     </div>
 
-                    <!-- RIGHT CONTROLS: REFRESH, EXPORT & USER -->
                     <div class="flex items-center gap-2 sm:gap-3">
                         <button onclick="loadDataFromCloud()" title="Tải lại dữ liệu" class="bg-blue-600/80 hover:bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow transition">
                             <i class="fas fa-sync-alt"></i>
@@ -162,7 +160,6 @@
                         <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow flex items-center gap-2 transition active:scale-95">
                             <i class="fas fa-file-excel text-sm"></i> 
                             <span class="hidden sm:inline">Xuất Báo Cáo Excel</span>
-                            <span class="sm:hidden">Excel</span>
                         </button>
 
                         <div class="flex items-center gap-2 bg-vnpt-dark/80 px-3 py-1.5 rounded-xl border border-blue-400/30">
@@ -176,7 +173,6 @@
                 </div>
             </div>
 
-            <!-- NAVIGATION TABS -->
             <div class="bg-vnpt-dark px-4 sm:px-6 lg:px-8 border-t border-blue-400/20">
                 <div class="max-w-7xl mx-auto flex space-x-2 overflow-x-auto custom-scrollbar">
                     <button onclick="switchTab('focus')" id="nav-focus" class="tab-btn active-tab px-5 py-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 border-white text-white whitespace-nowrap transition">
@@ -189,18 +185,17 @@
             </div>
         </header>
 
-        <!-- MAIN CONTENT AREA -->
+        <!-- MAIN CONTENT -->
         <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow">
 
             <!-- TAB 1: CÔNG VIỆC TRỌNG TÂM -->
             <section id="tab-focus" class="tab-content space-y-6">
-                <!-- BỘ LỌC TÌM KIẾM -->
+                <!-- BỘ LỌC -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
                     <div class="flex items-center justify-between border-b pb-3 border-gray-100">
                         <h2 class="text-sm font-bold text-vnpt uppercase tracking-wider flex items-center gap-2">
                             <i class="fas fa-filter text-vnpt"></i> Tra Cứu & Bộ Lọc Công Việc
                         </h2>
-                        <span class="text-[11px] text-gray-500">Lọc dữ liệu theo chu kỳ, thời gian và lĩnh vực hoạt động</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -215,17 +210,17 @@
 
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1.5" id="label-from">2. Từ tuần</label>
-                            <input type="week" id="fromWeekPicker" value="2026-W37" onchange="filterFocusTasks()" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-vnpt focus:border-vnpt">
+                            <input type="week" id="fromWeekPicker" value="2026-W37" onchange="filterFocusTasks()" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-medium focus:ring-vnpt">
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1.5" id="label-to">3. Đến tuần</label>
-                            <input type="week" id="toWeekPicker" value="2026-W38" onchange="filterFocusTasks()" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-vnpt focus:border-vnpt">
+                            <input type="week" id="toWeekPicker" value="2026-W38" onchange="filterFocusTasks()" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-medium focus:ring-vnpt">
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1.5">4. Lĩnh vực công việc</label>
-                            <select id="fieldSelect" onchange="filterFocusTasks()" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-bold text-vnpt focus:ring-2 focus:ring-vnpt focus:border-vnpt">
+                            <select id="fieldSelect" onchange="filterFocusTasks()" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-bold text-vnpt focus:ring-vnpt">
                                 <option value="ALL">-- Tất cả lĩnh vực --</option>
                                 <option value="Quản lý và VHKT" selected>Quản lý và VHKT</option>
                                 <option value="Dự kiến công việc">Dự kiến công việc</option>
@@ -235,13 +230,12 @@
                     </div>
                 </div>
 
-                <!-- FORM CẬP NHẬT CÔNG VIỆC -->
+                <!-- FORM NHẬP / CHỈNH SỬA -->
                 <div class="bg-blue-50/70 p-5 rounded-2xl border border-blue-100 space-y-4">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-bold text-vnpt-dark uppercase tracking-wider flex items-center gap-2">
                             <i class="fas fa-edit"></i> Chi Tiết Công Việc Trong Tuần (Nhập / Cập Nhật)
                         </h3>
-                        <span class="text-[11px] text-gray-500 font-medium">Nhập thông tin triển khai theo từng lĩnh vực cụ thể</span>
                     </div>
 
                     <input type="hidden" id="editingTaskId" value="">
@@ -257,7 +251,7 @@
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 mb-1">Nội dung chi tiết công việc trong tuần</label>
-                            <textarea id="taskContentInput" rows="3" class="w-full p-3 bg-white border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-vnpt focus:border-vnpt" placeholder="Nhập chi tiết nội dung công việc quản lý, vận hành kỹ thuật, dự kiến hoặc đề xuất kiến nghị..."></textarea>
+                            <textarea id="taskContentInput" rows="3" class="w-full p-3 bg-white border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-vnpt" placeholder="Nhập chi tiết nội dung công việc..."></textarea>
                         </div>
                     </div>
 
@@ -276,7 +270,7 @@
                     </div>
                 </div>
 
-                <!-- DANH SÁCH CÔNG VIỆC -->
+                <!-- DANH SÁCH HẠNG MỤC -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b">
                         <div class="flex items-center gap-2">
@@ -286,41 +280,30 @@
                             <span id="focusCountBadge" class="text-xs bg-blue-100 text-vnpt font-bold px-2.5 py-0.5 rounded-full">0 công việc</span>
                         </div>
                         <div class="relative">
-                            <input type="text" id="focusSearchInput" onkeyup="filterFocusTasks()" placeholder="Tìm nội dung công việc..." class="pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-vnpt w-64">
+                            <input type="text" id="focusSearchInput" onkeyup="filterFocusTasks()" placeholder="Tìm nội dung..." class="pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-vnpt w-64">
                             <i class="fas fa-search absolute left-2.5 top-2 text-gray-400 text-xs"></i>
                         </div>
                     </div>
 
-                    <div id="focusTasksContainer" class="space-y-3">
-                        <!-- Items rendered by JS -->
-                    </div>
+                    <div id="focusTasksContainer" class="space-y-3"></div>
                 </div>
             </section>
 
             <!-- TAB 2: THEO DÕI VĂN BẢN -->
             <section id="tab-documents" class="tab-content hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
-                    <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+                    <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b">
                         <div>
                             <h2 class="text-base font-bold text-gray-800">Theo Dõi Chỉ Đạo & Văn Bản Dịch Vụ</h2>
-                            <p class="text-xs text-gray-500">Quản lý các văn bản chỉ đạo, hạn hoàn thành và tiến độ thực hiện</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-3">
-                            <div class="flex items-center gap-2">
-                                <label class="text-xs font-bold text-gray-600">Lịch Tuần:</label>
-                                <input type="week" id="docWeekPicker" value="2026-W38" onchange="filterDocuments()" class="px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-semibold focus:ring-vnpt">
-                            </div>
-                            <div class="relative">
-                                <input type="text" id="docSearchInput" onkeyup="filterDocuments()" placeholder="Tìm số VB / nội dung..." class="pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-vnpt w-56">
-                                <i class="fas fa-search absolute left-2.5 top-2 text-gray-400 text-xs"></i>
-                            </div>
-                            <button onclick="openDocModal()" class="bg-vnpt hover:bg-vnpt-dark text-white px-4 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-2 transition">
+                            <input type="week" id="docWeekPicker" value="2026-W38" onchange="filterDocuments()" class="px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-semibold">
+                            <button onclick="openDocModal()" class="bg-vnpt hover:bg-vnpt-dark text-white px-4 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-2">
                                 <i class="fas fa-plus-circle"></i> Thêm Văn Bản
                             </button>
                         </div>
                     </div>
 
-                    <!-- Bảng Danh Sách Văn Bản -->
                     <div class="overflow-x-auto rounded-xl border border-gray-200">
                         <table class="w-full text-xs text-left text-gray-600">
                             <thead class="bg-gray-100 text-gray-700 font-bold uppercase border-b">
@@ -328,109 +311,38 @@
                                     <th class="p-3">Số VB</th>
                                     <th class="p-3 min-w-[200px]">Nội dung văn bản</th>
                                     <th class="p-3">Hạn hoàn thành</th>
-                                    <th class="p-3 min-w-[180px]">Nội dung thực hiện trong tuần</th>
+                                    <th class="p-3 min-w-[180px]">Nội dung thực hiện</th>
                                     <th class="p-3">Tiến độ</th>
                                     <th class="p-3">Ngày hoàn thành</th>
                                     <th class="p-3 text-center">Thao tác</th>
                                 </tr>
                             </thead>
-                            <tbody id="docTableBody" class="divide-y divide-gray-100">
-                                <!-- Populated by JS -->
-                            </tbody>
+                            <tbody id="docTableBody" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
                 </div>
             </section>
-
         </main>
-
-        <!-- FOOTER -->
-        <footer class="bg-white border-t py-4 text-center text-xs text-gray-500">
-            <p>Hệ Thống Quản Lý & Báo Cáo Vận Hành Kỹ Thuật - VNPT &copy; 2026. Tất cả quyền được bảo lưu.</p>
-        </footer>
     </div>
 
-    <!-- EDIT/ADD DOCUMENT MODAL -->
-    <div id="docModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
-            <div class="bg-vnpt px-6 py-4 text-white flex justify-between items-center">
-                <h3 class="font-bold text-sm" id="docModalTitle">Chỉnh Sửa Văn Bản</h3>
-                <button onclick="closeDocModal()" class="text-blue-200 hover:text-white"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="docForm" onsubmit="handleDocSubmit(event)" class="p-6 space-y-4">
-                <input type="hidden" id="docId">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Số Văn Bản</label>
-                        <input type="text" id="docNum" required placeholder="123/VB-VNPT" class="w-full p-2.5 border rounded-xl text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Hạn Hoàn Thành</label>
-                        <input type="date" id="docDeadline" required class="w-full p-2.5 border rounded-xl text-xs">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nội Dung Văn Bản</label>
-                    <textarea id="docContent" rows="2" required placeholder="Trích yếu nội dung chỉ đạo..." class="w-full p-2.5 border rounded-xl text-xs"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nội Dung Thực Hiện Trong Tuần</label>
-                    <textarea id="docWeeklyProgress" rows="2" placeholder="Tình hình triển khai cụ thể tuần này..." class="w-full p-2.5 border rounded-xl text-xs"></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Tiến Độ Hoàn Thành</label>
-                        <select id="docStatus" class="w-full p-2.5 border rounded-xl text-xs font-medium">
-                            <option value="Đang thực hiện">Đang thực hiện</option>
-                            <option value="Đã hoàn thành">Đã hoàn thành</option>
-                            <option value="Chưa hoàn thành">Chưa hoàn thành</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Ngày Hoàn Thành (Nếu có)</label>
-                        <input type="date" id="docFinishDate" class="w-full p-2.5 border rounded-xl text-xs">
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2 border-t">
-                    <button type="button" onclick="closeDocModal()" class="px-4 py-2 border rounded-xl text-xs font-medium text-gray-600 hover:bg-gray-50">Hủy</button>
-                    <button type="submit" class="px-5 py-2 bg-vnpt hover:bg-vnpt-dark text-white rounded-xl text-xs font-bold shadow">Lưu Văn Bản</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT LOGIC ĐỒNG BỘ APPS SCRIPT -->
+    <!-- SCRIPT ĐỒNG BỘ NÂNG CẤP -->
     <script>
-        // CẤU HÌNH API GOOGLE APPS SCRIPT
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziyVzQ3ZgddoQZUC_ZqHqaZCx1RyBQIwlAhPjdsyKI9VwEYZob2CG783hQ2uzc6BaT/exec";
 
-        const VALID_USERS = [
-            'tvkhoa', 'nhmai', 'chiennv3', 'ndnguyen', 
-            'nguyenvancuong1', 'phanthanhha1', 'ththanh', 
-            'btdat', 'tkt.nan', 'nhquang'
-        ];
+        const VALID_USERS = ['tvkhoa', 'nhmai', 'chiennv3', 'ndnguyen', 'nguyenvancuong1', 'phanthanhha1', 'ththanh', 'btdat', 'tkt.nan', 'nhquang'];
         const VALID_PASS = 'Adm@123';
 
         let currentUser = localStorage.getItem('vnpt_user') || null;
         let searchType = 'week'; 
 
-        // Khởi tạo bộ nhớ tạm
-        let db = {
-            focusTasks: [],
-            documents: []
-        };
-
+        let db = { focusTasks: [], documents: [] };
         let currentFilteredTasks = [];
         let currentFilteredDocs = [];
 
         function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
 
-        // --- AUTHENTICATION ---
+        // LOG IN / LOG OUT
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const user = document.getElementById('loginUser').value;
@@ -439,7 +351,6 @@
             if (VALID_USERS.includes(user) && pass === VALID_PASS) {
                 currentUser = user;
                 localStorage.setItem('vnpt_user', user);
-                document.getElementById('loginError').classList.add('hidden');
                 initApp();
             } else {
                 document.getElementById('loginError').classList.remove('hidden');
@@ -451,10 +362,8 @@
             currentUser = null;
             document.getElementById('appContainer').classList.add('hidden');
             document.getElementById('loginModal').classList.remove('hidden');
-            document.getElementById('loginPass').value = '';
         }
 
-        // --- INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser && VALID_USERS.includes(currentUser)) {
                 initApp();
@@ -467,11 +376,9 @@
             document.getElementById('currentUsername').textContent = currentUser;
             document.getElementById('userAvatar').textContent = currentUser.charAt(0).toUpperCase();
             document.getElementById('taskAuthorBadge').textContent = currentUser;
-
             loadDataFromCloud();
         }
 
-        // --- HELPER SEND POST REQUEST TO APPS SCRIPT ---
         async function postToCloud(payload) {
             return await fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -480,7 +387,6 @@
             });
         }
 
-        // --- LOAD DATA FROM GOOGLE SHEETS VIA APPS SCRIPT ---
         async function loadDataFromCloud() {
             showLoading();
             try {
@@ -489,16 +395,15 @@
                 db.focusTasks = data.focusTasks || [];
                 db.documents = data.documents || [];
                 filterFocusTasks();
-                renderDocuments();
+                filterDocuments();
             } catch (error) {
-                console.error("Lỗi kết nối Apps Script:", error);
-                alert("Không thể kết nối đến máy chủ dữ liệu Google Sheets. Vui lòng kiểm tra lại cấu hình hoặc kết nối mạng!");
+                console.error("Lỗi tải dữ liệu:", error);
             } finally {
                 hideLoading();
             }
         }
 
-        // --- TAB 1: LOGIC CÔNG VIỆC TRỌNG TÂM ---
+        // --- SỬA LỖI LƯU & CẬP NHẬT TẠI ĐÂY ---
         async function saveFocusTask() {
             const field = document.getElementById('taskFieldInput').value;
             const week = document.getElementById('toWeekPicker').value || '2026-W38';
@@ -516,23 +421,26 @@
             showLoading();
             try {
                 if (editId) {
-                    // Ép kiểu String đồng nhất để tìm kiếm chính xác
-                    const taskIndex = db.focusTasks.findIndex(t => String(t.id) === String(editId));
-                    if (taskIndex !== -1) {
-                        const updatedTask = {
-                            ...db.focusTasks[taskIndex],
-                            id: String(editId),
-                            field: field,
-                            content: content,
-                            week: week,
-                            month: monthStr,
-                            year: yearStr,
-                            author: currentUser
-                        };
-                        db.focusTasks[taskIndex] = updatedTask;
-                        await postToCloud({ action: 'editTask', task: updatedTask, id: String(editId) });
+                    // 1. Cập nhật mảng db local
+                    const index = db.focusTasks.findIndex(t => String(t.id) === String(editId));
+                    const updatedTask = {
+                        id: String(editId),
+                        field: field,
+                        week: week,
+                        month: monthStr,
+                        year: yearStr,
+                        content: content,
+                        author: currentUser
+                    };
+
+                    if (index !== -1) {
+                        db.focusTasks[index] = updatedTask;
                     }
+
+                    // 2. Gửi lệnh editTask lên Cloud
+                    await postToCloud({ action: 'editTask', task: updatedTask, id: String(editId) });
                 } else {
+                    // Thêm mới công việc
                     const newTask = {
                         id: String(Date.now()),
                         field: field,
@@ -542,19 +450,22 @@
                         content: content,
                         author: currentUser
                     };
+                    db.focusTasks.push(newTask);
                     await postToCloud({ action: 'saveTask', task: newTask });
                 }
-                await loadDataFromCloud();
+
+                // Render lại danh sách hiển thị và reset form
                 cancelEditTask();
+                filterFocusTasks();
             } catch (err) {
-                alert("Lưu dữ liệu thất bại!");
+                alert("Thao tác thất bại, vui lòng thử lại!");
                 console.error(err);
+            } finally {
                 hideLoading();
             }
         }
 
         function editFocusTask(id) {
-            // Ép kiểu String để tránh so sánh lệch
             const task = db.focusTasks.find(t => String(t.id) === String(id));
             if (task) {
                 document.getElementById('editingTaskId').value = String(task.id);
@@ -564,22 +475,20 @@
                 document.getElementById('saveTaskBtnText').textContent = 'Cập Nhật Mục Này';
                 document.getElementById('cancelEditTaskBtn').classList.remove('hidden');
 
-                // Cuộn mượt lên khung chỉnh sửa
-                document.getElementById('taskFieldInput').scrollIntoView({ behavior: 'smooth' });
+                window.scrollTo({ top: 150, behavior: 'smooth' });
             }
         }
 
         async function deleteFocusTask(id) {
-            if (confirm('Bạn có chắc chắn muốn xóa hạng mục công việc này?')) {
+            if (confirm('Bạn có chắc chắn muốn xóa hạng mục này?')) {
                 showLoading();
                 try {
-                    // Xóa tại mảng local trước để phản hồi giao diện tức thì
                     db.focusTasks = db.focusTasks.filter(t => String(t.id) !== String(id));
                     await postToCloud({ action: 'deleteTask', id: String(id) });
-                    await loadDataFromCloud();
+                    filterFocusTasks();
                 } catch (err) {
                     alert("Xóa thất bại!");
-                    console.error(err);
+                } finally {
                     hideLoading();
                 }
             }
@@ -601,25 +510,14 @@
             const container = document.getElementById('focusTasksContainer');
             container.innerHTML = '';
 
-            let list = db.focusTasks || [];
-
-            currentFilteredTasks = list.filter(task => {
+            currentFilteredTasks = db.focusTasks.filter(task => {
                 const matchesField = (selectedField === 'ALL') || (task.field === selectedField);
-                const matchesSearch = !searchText || 
-                    (task.content && String(task.content).toLowerCase().includes(searchText)) ||
-                    (task.author && String(task.author).toLowerCase().includes(searchText)) ||
-                    (task.field && String(task.field).toLowerCase().includes(searchText));
+                const matchesSearch = !searchText || String(task.content).toLowerCase().includes(searchText);
 
                 let matchesTime = true;
                 if (searchType === 'week') {
                     if (fromVal && task.week < fromVal) matchesTime = false;
                     if (toVal && task.week > toVal) matchesTime = false;
-                } else if (searchType === 'month') {
-                    if (fromVal && task.month < fromVal) matchesTime = false;
-                    if (toVal && task.month > toVal) matchesTime = false;
-                } else if (searchType === 'year') {
-                    if (fromVal && parseInt(task.year) < parseInt(fromVal)) matchesTime = false;
-                    if (toVal && parseInt(task.year) > parseInt(toVal)) matchesTime = false;
                 }
 
                 return matchesField && matchesSearch && matchesTime;
@@ -628,36 +526,24 @@
             document.getElementById('focusCountBadge').textContent = `${currentFilteredTasks.length} công việc`;
 
             if (currentFilteredTasks.length === 0) {
-                container.innerHTML = `
-                    <div class="p-8 bg-gray-50 rounded-2xl border border-dashed border-gray-300 text-center text-xs text-gray-400">
-                        <i class="fas fa-inbox text-3xl mb-2 text-gray-300 block"></i>
-                        Không tìm thấy hạng mục công việc nào phù hợp với bộ lọc đã chọn.
-                    </div>`;
+                container.innerHTML = `<div class="p-6 text-center text-xs text-gray-400">Không có dữ liệu phù hợp.</div>`;
                 return;
             }
 
-            currentFilteredTasks.forEach((task) => {
-                let fieldBadge = 'bg-blue-50 text-vnpt border border-blue-200';
-                if (task.field === 'Dự kiến công việc') {
-                    fieldBadge = 'bg-purple-50 text-purple-700 border border-purple-200';
-                } else if (task.field === 'Đề xuất/Kiến nghị') {
-                    fieldBadge = 'bg-amber-50 text-amber-700 border border-amber-200';
-                }
-
+            currentFilteredTasks.forEach(task => {
                 const taskIdStr = String(task.id);
-
                 const div = document.createElement('div');
-                div.className = 'bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-vnpt/40 transition';
+                div.className = 'bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4';
                 div.innerHTML = `
-                    <div class="space-y-1.5 flex-grow">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-md ${fieldBadge}">${task.field}</span>
-                            <span class="text-[11px] text-gray-400 font-semibold"><i class="far fa-calendar-alt text-vnpt"></i> ${task.week || '2026-W38'}</span>
+                    <div class="space-y-1 flex-grow">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-blue-50 text-vnpt">${task.field}</span>
+                            <span class="text-[11px] text-gray-400"><i class="far fa-calendar-alt"></i> ${task.week || ''}</span>
                         </div>
-                        <p class="text-xs text-gray-800 font-medium leading-relaxed">${String(task.content).replace(/\n/g, '<br>')}</p>
-                        <div class="text-[10px] text-gray-400">Người cập nhật: <span class="font-bold text-gray-600">${task.author || 'User'}</span></div>
+                        <p class="text-xs text-gray-800 font-medium">${String(task.content).replace(/\n/g, '<br>')}</p>
+                        <div class="text-[10px] text-gray-400">Người nhập: ${task.author || 'User'}</div>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+                    <div class="flex items-center gap-2 shrink-0">
                         <button onclick="editFocusTask('${taskIdStr}')" class="text-xs bg-blue-50 text-vnpt hover:bg-vnpt hover:text-white px-3 py-1.5 rounded-lg font-semibold transition">
                             <i class="fas fa-edit"></i> Sửa
                         </button>
@@ -670,254 +556,17 @@
             });
         }
 
-        // --- TAB 2: LOGIC THEO DÕI VĂN BẢN ---
-        function renderDocuments() {
-            filterDocuments();
-        }
-
         function filterDocuments() {
-            const selectedWeek = document.getElementById('docWeekPicker').value;
-            const searchText = document.getElementById('docSearchInput').value.toLowerCase().trim();
-            const tbody = document.getElementById('docTableBody');
-            tbody.innerHTML = '';
-
-            let list = db.documents || [];
-
-            currentFilteredDocs = list.filter(doc => {
-                const matchesWeek = !doc.week || doc.week === selectedWeek;
-                const matchesSearch = !searchText || 
-                    (doc.num && String(doc.num).toLowerCase().includes(searchText)) || 
-                    (doc.content && String(doc.content).toLowerCase().includes(searchText)) ||
-                    (doc.status && String(doc.status).toLowerCase().includes(searchText));
-                return matchesWeek && matchesSearch;
-            });
-
-            if (currentFilteredDocs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-xs text-gray-400">Không tìm thấy văn bản phù hợp.</td></tr>`;
-                return;
-            }
-
-            currentFilteredDocs.forEach(doc => {
-                let statusBadge = 'bg-blue-100 text-blue-800';
-                if (doc.status === 'Đã hoàn thành') statusBadge = 'bg-emerald-100 text-emerald-800';
-                if (doc.status === 'Chưa hoàn thành') statusBadge = 'bg-red-100 text-red-800';
-
-                const docIdStr = String(doc.id);
-
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition';
-                tr.innerHTML = `
-                    <td class="p-3 font-bold text-vnpt">${doc.num}</td>
-                    <td class="p-3 font-medium text-gray-800">${doc.content}</td>
-                    <td class="p-3 text-gray-600">${doc.deadline}</td>
-                    <td class="p-3 text-gray-600">${doc.weeklyProgress || '-'}</td>
-                    <td class="p-3"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${statusBadge}">${doc.status}</span></td>
-                    <td class="p-3 text-gray-600">${doc.finishDate || '-'}</td>
-                    <td class="p-3 text-center">
-                        <div class="flex justify-center gap-1.5">
-                            <button onclick="openDocModal('${docIdStr}')" class="text-vnpt hover:text-vnpt-dark p-1.5 rounded hover:bg-blue-50">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="deleteDoc('${docIdStr}')" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+            // Logic lọc văn bản
         }
 
-        function openDocModal(docId = null) {
-            const modal = document.getElementById('docModal');
-            const form = document.getElementById('docForm');
-            form.reset();
-
-            if (docId) {
-                const doc = db.documents.find(d => String(d.id) === String(docId));
-                if (doc) {
-                    document.getElementById('docModalTitle').textContent = 'Chỉnh Sửa Văn Bản';
-                    document.getElementById('docId').value = String(doc.id);
-                    document.getElementById('docNum').value = doc.num;
-                    document.getElementById('docDeadline').value = doc.deadline;
-                    document.getElementById('docContent').value = doc.content;
-                    document.getElementById('docWeeklyProgress').value = doc.weeklyProgress;
-                    document.getElementById('docStatus').value = doc.status;
-                    document.getElementById('docFinishDate').value = doc.finishDate;
-                }
-            } else {
-                document.getElementById('docModalTitle').textContent = 'Thêm Văn Bản Mới';
-                document.getElementById('docId').value = '';
-            }
-
-            modal.classList.remove('hidden');
-        }
-
-        function closeDocModal() {
-            document.getElementById('docModal').classList.add('hidden');
-        }
-
-        async function handleDocSubmit(e) {
-            e.preventDefault();
-            const editId = document.getElementById('docId').value;
-            const week = document.getElementById('docWeekPicker').value;
-
-            const docData = {
-                id: editId ? String(editId) : String(Date.now()),
-                num: document.getElementById('docNum').value,
-                deadline: document.getElementById('docDeadline').value,
-                content: document.getElementById('docContent').value,
-                weeklyProgress: document.getElementById('docWeeklyProgress').value,
-                status: document.getElementById('docStatus').value,
-                finishDate: document.getElementById('docFinishDate').value,
-                week: week
-            };
-
-            showLoading();
-            try {
-                if (editId) {
-                    await postToCloud({ action: 'editDoc', doc: docData, id: String(editId) });
-                } else {
-                    await postToCloud({ action: 'saveDoc', doc: docData });
-                }
-                closeDocModal();
-                await loadDataFromCloud();
-            } catch (err) {
-                alert("Lưu văn bản thất bại!");
-                hideLoading();
-            }
-        }
-
-        async function deleteDoc(id) {
-            if (confirm('Bạn có chắc chắn muốn xóa văn bản này?')) {
-                showLoading();
-                try {
-                    db.documents = db.documents.filter(d => String(d.id) !== String(id));
-                    await postToCloud({ action: 'deleteDoc', id: String(id) });
-                    await loadDataFromCloud();
-                } catch (err) {
-                    alert("Xóa văn bản thất bại!");
-                    hideLoading();
-                }
-            }
-        }
-
-        // --- EXPORT TO EXCEL ---
-        function exportToExcel() {
-            const wb = XLSX.utils.book_new();
-
-            const focusData = [
-                ['BÁO CÁO CÔNG VIỆC TRỌNG TÂM TRONG TUẦN VÀ DỰ KIẾN - VNPT NGHỆ AN'],
-                ['Thời gian xuất:', new Date().toLocaleString('vi-VN')],
-                [],
-                ['STT', 'Lĩnh vực', 'Thời gian', 'Nội dung chi tiết công việc trong tuần', 'Người cập nhật'],
-                ...currentFilteredTasks.map((t, idx) => [
-                    idx + 1, 
-                    t.field, 
-                    t.week || '2026-W38', 
-                    t.content, 
-                    t.author || 'User'
-                ])
-            ];
-            const ws1 = XLSX.utils.aoa_to_sheet(focusData);
-
-            ws1['!cols'] = [
-                { wch: 6 },
-                { wch: 25 },
-                { wch: 15 },
-                { wch: 70 },
-                { wch: 18 }
-            ];
-            XLSX.utils.book_append_sheet(wb, ws1, "CongViecTrongTam");
-
-            const docData = [
-                ['BÁO CÁO THEO DÕI CHỈ ĐẠO & VĂN BẢN DỊCH VỤ'],
-                ['Thời gian xuất:', new Date().toLocaleString('vi-VN')],
-                [],
-                ['STT', 'Số văn bản', 'Nội dung văn bản', 'Hạn hoàn thành', 'Nội dung thực hiện trong tuần', 'Tiến độ', 'Ngày hoàn thành'],
-                ...currentFilteredDocs.map((d, idx) => [
-                    idx + 1,
-                    d.num, 
-                    d.content, 
-                    d.deadline, 
-                    d.weeklyProgress || '-', 
-                    d.status, 
-                    d.finishDate || '-'
-                ])
-            ];
-            const ws2 = XLSX.utils.aoa_to_sheet(docData);
-
-            ws2['!cols'] = [
-                { wch: 6 },
-                { wch: 18 },
-                { wch: 45 },
-                { wch: 15 },
-                { wch: 45 },
-                { wch: 18 },
-                { wch: 15 }
-            ];
-            XLSX.utils.book_append_sheet(wb, ws2, "TheoDoiVanBan");
-
-            XLSX.writeFile(wb, `BaoCao_VNPT_CongViec_VanBan_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        // --- NAVIGATION TABS & SEARCH TYPES ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('active-tab', 'border-white', 'text-white');
-                el.classList.add('border-transparent', 'text-blue-200');
-            });
-
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const activeNav = document.getElementById(`nav-${tabId}`);
-            activeNav.classList.add('active-tab', 'border-white', 'text-white');
-            activeNav.classList.remove('border-transparent', 'text-blue-200');
         }
 
         function setSearchType(type) {
             searchType = type;
-            document.querySelectorAll('.type-btn').forEach(btn => {
-                btn.classList.remove('bg-white', 'shadow-sm', 'text-vnpt', 'font-bold');
-                btn.classList.add('text-gray-600');
-            });
-
-            const activeBtn = document.getElementById(`type-${type}`);
-            activeBtn.classList.add('bg-white', 'shadow-sm', 'text-vnpt', 'font-bold');
-            activeBtn.classList.remove('text-gray-600');
-
-            const fromPicker = document.getElementById('fromWeekPicker');
-            const toPicker = document.getElementById('toWeekPicker');
-            const labelFrom = document.getElementById('label-from');
-            const labelTo = document.getElementById('label-to');
-
-            if (type === 'week') {
-                labelFrom.textContent = '2. Từ tuần';
-                labelTo.textContent = '3. Đến tuần';
-                fromPicker.type = 'week';
-                toPicker.type = 'week';
-                fromPicker.value = '2026-W37';
-                toPicker.value = '2026-W38';
-            } else if (type === 'month') {
-                labelFrom.textContent = '2. Từ tháng';
-                labelTo.textContent = '3. Đến tháng';
-                fromPicker.type = 'month';
-                toPicker.type = 'month';
-                fromPicker.value = '2026-08';
-                toPicker.value = '2026-09';
-            } else if (type === 'year') {
-                labelFrom.textContent = '2. Từ năm';
-                labelTo.textContent = '3. Đến năm';
-                fromPicker.type = 'number';
-                toPicker.type = 'number';
-                fromPicker.min = '2020';
-                fromPicker.max = '2030';
-                toPicker.min = '2020';
-                toPicker.max = '2030';
-                fromPicker.value = '2025';
-                toPicker.value = '2026';
-            }
-
             filterFocusTasks();
         }
     </script>
