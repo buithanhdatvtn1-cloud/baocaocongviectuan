@@ -325,7 +325,7 @@
         </main>
     </div>
 
-    <!-- SCRIPT ĐỒNG BỘ NÂNG CẤP -->
+    <!-- SCRIPT ĐỒNG BỘ CHỐNG CACHE VÀ TỐI ƯU CẬP NHẬT -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziyVzQ3ZgddoQZUC_ZqHqaZCx1RyBQIwlAhPjdsyKI9VwEYZob2CG783hQ2uzc6BaT/exec";
 
@@ -381,14 +381,13 @@
             // Tải dữ liệu ban đầu
             loadDataFromCloud();
 
-            // Tự động đồng bộ ngầm sau mỗi 10 giây (Polling realtime)
+            // Tự động kiểm tra dữ liệu ngầm mỗi 5 giây
             setInterval(() => {
                 const editId = document.getElementById('editingTaskId').value;
-                // Chỉ tự đồng bộ khi người dùng không ở trong trạng thái đang chỉnh sửa công việc
                 if (!editId) {
                     loadDataFromCloudSilent();
                 }
-            }, 10000);
+            }, 5000);
         }
 
         async function postToCloud(payload) {
@@ -399,11 +398,12 @@
             });
         }
 
-        // Tải dữ liệu chính có màn hình loading
+        // Tải dữ liệu chính - Thêm ?t=thời_gian để XÓA CACHE TRÌNH DUYỆT
         async function loadDataFromCloud() {
             showLoading();
             try {
-                const response = await fetch(SCRIPT_URL);
+                const freshUrl = `${SCRIPT_URL}?t=${new Date().getTime()}`;
+                const response = await fetch(freshUrl, { cache: 'no-store' });
                 const data = await response.json();
                 db.focusTasks = data.focusTasks || [];
                 db.documents = data.documents || [];
@@ -416,10 +416,11 @@
             }
         }
 
-        // Tải dữ liệu ngầm không gây nhấp nháy màn hình
+        // Tải dữ liệu ngầm - Thêm ?t=thời_gian để ép điện thoại/máy tính khác lấy dữ liệu mới từ Cloud
         async function loadDataFromCloudSilent() {
             try {
-                const response = await fetch(SCRIPT_URL);
+                const freshUrl = `${SCRIPT_URL}?t=${new Date().getTime()}`;
+                const response = await fetch(freshUrl, { cache: 'no-store' });
                 const data = await response.json();
                 db.focusTasks = data.focusTasks || [];
                 db.documents = data.documents || [];
@@ -479,11 +480,16 @@
 
                 cancelEditTask();
 
-                // Đảm bảo bộ lọc thời gian bao phủ đúng tuần của công việc vừa cập nhật
+                // Đảm bảo lọc phủ rộng để người nhập thấy ngay kết quả
                 document.getElementById('fromWeekPicker').value = week;
                 document.getElementById('toWeekPicker').value = week;
-
                 filterFocusTasks();
+
+                // Tải lại dữ liệu trực tiếp từ cloud sau 1.5s để chắc chắn Google Apps Script đã lưu thành công vào file Sheet
+                setTimeout(() => {
+                    loadDataFromCloudSilent();
+                }, 1500);
+
             } catch (err) {
                 alert("Thao tác thất bại, vui lòng thử lại!");
                 console.error(err);
@@ -513,6 +519,10 @@
                     db.focusTasks = db.focusTasks.filter(t => String(t.id) !== String(id));
                     await postToCloud({ action: 'deleteTask', id: String(id) });
                     filterFocusTasks();
+                    
+                    setTimeout(() => {
+                        loadDataFromCloudSilent();
+                    }, 1500);
                 } catch (err) {
                     alert("Xóa thất bại!");
                 } finally {
