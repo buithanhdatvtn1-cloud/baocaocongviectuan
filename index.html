@@ -334,6 +334,7 @@
 
         let currentUser = localStorage.getItem('vnpt_user') || null;
         let searchType = 'week'; 
+        let currentTab = 'focus';
 
         let db = { focusTasks: [], documents: [] };
         let currentFilteredTasks = [];
@@ -403,7 +404,6 @@
             }
         }
 
-        // --- SỬA LỖI LƯU & CẬP NHẬT TẠI ĐÂY ---
         async function saveFocusTask() {
             const field = document.getElementById('taskFieldInput').value;
             const week = document.getElementById('toWeekPicker').value || '2026-W38';
@@ -421,7 +421,6 @@
             showLoading();
             try {
                 if (editId) {
-                    // 1. Cập nhật mảng db local
                     const index = db.focusTasks.findIndex(t => String(t.id) === String(editId));
                     const updatedTask = {
                         id: String(editId),
@@ -437,10 +436,8 @@
                         db.focusTasks[index] = updatedTask;
                     }
 
-                    // 2. Gửi lệnh editTask lên Cloud
                     await postToCloud({ action: 'editTask', task: updatedTask, id: String(editId) });
                 } else {
-                    // Thêm mới công việc
                     const newTask = {
                         id: String(Date.now()),
                         field: field,
@@ -454,7 +451,6 @@
                     await postToCloud({ action: 'saveTask', task: newTask });
                 }
 
-                // Render lại danh sách hiển thị và reset form
                 cancelEditTask();
                 filterFocusTasks();
             } catch (err) {
@@ -557,17 +553,92 @@
         }
 
         function filterDocuments() {
-            // Logic lọc văn bản
+            currentFilteredDocs = db.documents || [];
         }
 
         function switchTab(tabId) {
+            currentTab = tabId;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-white', 'text-white');
+                btn.classList.add('border-transparent', 'text-blue-200');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-blue-200');
+                activeBtn.classList.add('border-white', 'text-white');
+            }
         }
 
         function setSearchType(type) {
             searchType = type;
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-vnpt', 'font-bold');
+                btn.classList.add('text-gray-600');
+            });
+            const activeTypeBtn = document.getElementById(`type-${type}`);
+            if (activeTypeBtn) {
+                activeTypeBtn.classList.add('bg-white', 'shadow-sm', 'text-vnpt', 'font-bold');
+                activeTypeBtn.classList.remove('text-gray-600');
+            }
             filterFocusTasks();
+        }
+
+        // --- HÀM XUẤT EXCEL BẰNG SHEETJS ---
+        function exportToExcel() {
+            if (typeof XLSX === 'undefined') {
+                alert("Thư viện SheetJS chưa được tải xong, vui lòng thử lại sau giây lát!");
+                return;
+            }
+
+            let exportData = [];
+            let fileName = "";
+
+            if (currentTab === 'focus') {
+                const tasksToExport = currentFilteredTasks.length > 0 ? currentFilteredTasks : db.focusTasks;
+                if (tasksToExport.length === 0) {
+                    alert("Không có dữ liệu công việc trọng tâm để xuất Excel!");
+                    return;
+                }
+
+                exportData = tasksToExport.map((item, index) => ({
+                    "STT": index + 1,
+                    "Lĩnh vực": item.field || "",
+                    "Thời gian (Tuần/Tháng/Năm)": item.week || item.month || item.year || "",
+                    "Nội dung công việc": item.content || "",
+                    "Người nhập": item.author || ""
+                }));
+
+                fileName = `Bao_Cao_Cong_Viec_Trong_Tam_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            } else {
+                const docsToExport = currentFilteredDocs.length > 0 ? currentFilteredDocs : db.documents;
+                if (docsToExport.length === 0) {
+                    alert("Không có dữ liệu văn bản để xuất Excel!");
+                    return;
+                }
+
+                exportData = docsToExport.map((item, index) => ({
+                    "STT": index + 1,
+                    "Số văn bản": item.number || "",
+                    "Nội dung văn bản": item.title || "",
+                    "Hạn hoàn thành": item.deadline || "",
+                    "Nội dung thực hiện": item.implementation || "",
+                    "Tiến độ": item.progress || "",
+                    "Ngày hoàn thành": item.completedDate || ""
+                }));
+
+                fileName = `Bao_Cao_Theo_Doi_Van_Ban_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            }
+
+            // Tạo Sheet & Workbook
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCao");
+
+            // Xuất file về máy
+            XLSX.writeFile(workbook, fileName);
         }
     </script>
 </body>
