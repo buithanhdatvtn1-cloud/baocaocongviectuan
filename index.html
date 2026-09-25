@@ -424,7 +424,6 @@
             documents: []
         };
 
-        // Lưu danh sách đang hiển thị trên giao diện phục vụ xuất Excel
         let currentFilteredTasks = [];
         let currentFilteredDocs = [];
 
@@ -472,6 +471,15 @@
             loadDataFromCloud();
         }
 
+        // --- HELPER SEND POST REQUEST TO APPS SCRIPT ---
+        async function postToCloud(payload) {
+            return await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+        }
+
         // --- LOAD DATA FROM GOOGLE SHEETS VIA APPS SCRIPT ---
         async function loadDataFromCloud() {
             showLoading();
@@ -508,18 +516,17 @@
             showLoading();
             try {
                 if (editId) {
-                    const task = db.focusTasks.find(t => t.id == editId);
+                    // Ép kiểu String để tránh so sánh lệch kĩ thuật
+                    const task = db.focusTasks.find(t => String(t.id) === String(editId));
                     if (task) {
                         task.field = field;
                         task.content = content;
-                        await fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({ action: 'editTask', task: task })
-                        });
+                        task.author = currentUser; // Cập nhật lại người sửa nếu cần
+                        await postToCloud({ action: 'editTask', task: task });
                     }
                 } else {
                     const newTask = {
-                        id: Date.now(),
+                        id: String(Date.now()),
                         field: field,
                         week: week,
                         month: monthStr,
@@ -527,10 +534,7 @@
                         content: content,
                         author: currentUser
                     };
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'saveTask', task: newTask })
-                    });
+                    await postToCloud({ action: 'saveTask', task: newTask });
                 }
                 await loadDataFromCloud();
                 cancelEditTask();
@@ -542,14 +546,18 @@
         }
 
         function editFocusTask(id) {
-            const task = db.focusTasks.find(t => t.id == id);
+            // So sánh kiểu String an toàn
+            const task = db.focusTasks.find(t => String(t.id) === String(id));
             if (task) {
-                document.getElementById('editingTaskId').value = task.id;
+                document.getElementById('editingTaskId').value = String(task.id);
                 document.getElementById('taskFieldInput').value = task.field;
                 document.getElementById('taskContentInput').value = task.content;
 
                 document.getElementById('saveTaskBtnText').textContent = 'Cập Nhật Mục Này';
                 document.getElementById('cancelEditTaskBtn').classList.remove('hidden');
+
+                // Cuộn mượt lên khung chỉnh sửa
+                document.getElementById('editingTaskId').parentElement.scrollIntoView({ behavior: 'smooth' });
             }
         }
 
@@ -557,13 +565,11 @@
             if (confirm('Bạn có chắc chắn muốn xóa hạng mục công việc này?')) {
                 showLoading();
                 try {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'deleteTask', id: id })
-                    });
+                    await postToCloud({ action: 'deleteTask', id: String(id) });
                     await loadDataFromCloud();
                 } catch (err) {
                     alert("Xóa thất bại!");
+                    console.error(err);
                     hideLoading();
                 }
             }
@@ -628,6 +634,8 @@
                     fieldBadge = 'bg-amber-50 text-amber-700 border border-amber-200';
                 }
 
+                const taskIdStr = String(task.id);
+
                 const div = document.createElement('div');
                 div.className = 'bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-vnpt/40 transition';
                 div.innerHTML = `
@@ -640,10 +648,10 @@
                         <div class="text-[10px] text-gray-400">Người cập nhật: <span class="font-bold text-gray-600">${task.author || 'User'}</span></div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
-                        <button onclick="editFocusTask('${task.id}')" class="text-xs bg-blue-50 text-vnpt hover:bg-vnpt hover:text-white px-3 py-1.5 rounded-lg font-semibold transition">
+                        <button onclick="editFocusTask('${taskIdStr}')" class="text-xs bg-blue-50 text-vnpt hover:bg-vnpt hover:text-white px-3 py-1.5 rounded-lg font-semibold transition">
                             <i class="fas fa-edit"></i> Sửa
                         </button>
-                        <button onclick="deleteFocusTask('${task.id}')" class="text-xs bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg font-semibold transition">
+                        <button onclick="deleteFocusTask('${taskIdStr}')" class="text-xs bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg font-semibold transition">
                             <i class="fas fa-trash"></i> Xóa
                         </button>
                     </div>
@@ -684,6 +692,8 @@
                 if (doc.status === 'Đã hoàn thành') statusBadge = 'bg-emerald-100 text-emerald-800';
                 if (doc.status === 'Chưa hoàn thành') statusBadge = 'bg-red-100 text-red-800';
 
+                const docIdStr = String(doc.id);
+
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition';
                 tr.innerHTML = `
@@ -695,10 +705,10 @@
                     <td class="p-3 text-gray-600">${doc.finishDate || '-'}</td>
                     <td class="p-3 text-center">
                         <div class="flex justify-center gap-1.5">
-                            <button onclick="openDocModal('${doc.id}')" class="text-vnpt hover:text-vnpt-dark p-1.5 rounded hover:bg-blue-50">
+                            <button onclick="openDocModal('${docIdStr}')" class="text-vnpt hover:text-vnpt-dark p-1.5 rounded hover:bg-blue-50">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="deleteDoc('${doc.id}')" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50">
+                            <button onclick="deleteDoc('${docIdStr}')" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -714,10 +724,10 @@
             form.reset();
 
             if (docId) {
-                const doc = db.documents.find(d => d.id == docId);
+                const doc = db.documents.find(d => String(d.id) === String(docId));
                 if (doc) {
                     document.getElementById('docModalTitle').textContent = 'Chỉnh Sửa Văn Bản';
-                    document.getElementById('docId').value = doc.id;
+                    document.getElementById('docId').value = String(doc.id);
                     document.getElementById('docNum').value = doc.num;
                     document.getElementById('docDeadline').value = doc.deadline;
                     document.getElementById('docContent').value = doc.content;
@@ -743,7 +753,7 @@
             const week = document.getElementById('docWeekPicker').value;
 
             const docData = {
-                id: editId || Date.now(),
+                id: editId ? String(editId) : String(Date.now()),
                 num: document.getElementById('docNum').value,
                 deadline: document.getElementById('docDeadline').value,
                 content: document.getElementById('docContent').value,
@@ -756,15 +766,9 @@
             showLoading();
             try {
                 if (editId) {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'editDoc', doc: docData })
-                    });
+                    await postToCloud({ action: 'editDoc', doc: docData });
                 } else {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'saveDoc', doc: docData })
-                    });
+                    await postToCloud({ action: 'saveDoc', doc: docData });
                 }
                 closeDocModal();
                 await loadDataFromCloud();
@@ -778,10 +782,7 @@
             if (confirm('Bạn có chắc chắn muốn xóa văn bản này?')) {
                 showLoading();
                 try {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'deleteDoc', id: id })
-                    });
+                    await postToCloud({ action: 'deleteDoc', id: String(id) });
                     await loadDataFromCloud();
                 } catch (err) {
                     alert("Xóa văn bản thất bại!");
@@ -790,11 +791,10 @@
             }
         }
 
-        // --- EXPORT TO EXCEL ĐƯỢC CẬP NHẬT THEO FORM GIAO DIỆN WEB ---
+        // --- EXPORT TO EXCEL ---
         function exportToExcel() {
             const wb = XLSX.utils.book_new();
 
-            // 1. DỮ LIỆU CÔNG VIỆC TRỌNG TÂM (LẤY ĐÚNG DỮ LIỆU ĐANG LỌC TRÊN WEB)
             const focusData = [
                 ['BÁO CÁO CÔNG VIỆC TRỌNG TÂM TRONG TUẦN VÀ DỰ KIẾN - VNPT NGHỆ AN'],
                 ['Thời gian xuất:', new Date().toLocaleString('vi-VN')],
@@ -810,17 +810,15 @@
             ];
             const ws1 = XLSX.utils.aoa_to_sheet(focusData);
 
-            // Điều chỉnh độ rộng cột Excel chuẩn đẹp
             ws1['!cols'] = [
-                { wch: 6 },   // STT
-                { wch: 25 },  // Lĩnh vực
-                { wch: 15 },  // Thời gian
-                { wch: 70 },  // Nội dung
-                { wch: 18 }   // Người cập nhật
+                { wch: 6 },
+                { wch: 25 },
+                { wch: 15 },
+                { wch: 70 },
+                { wch: 18 }
             ];
             XLSX.utils.book_append_sheet(wb, ws1, "CongViecTrongTam");
 
-            // 2. DỮ LIỆU THEO DÕI VĂN BẢN (LẤY ĐÚNG DỮ LIỆU ĐANG LỌC TRÊN WEB)
             const docData = [
                 ['BÁO CÁO THEO DÕI CHỈ ĐẠO & VĂN BẢN DỊCH VỤ'],
                 ['Thời gian xuất:', new Date().toLocaleString('vi-VN')],
@@ -839,13 +837,13 @@
             const ws2 = XLSX.utils.aoa_to_sheet(docData);
 
             ws2['!cols'] = [
-                { wch: 6 },   // STT
-                { wch: 18 },  // Số VB
-                { wch: 45 },  // Nội dung VB
-                { wch: 15 },  // Hạn hoàn thành
-                { wch: 45 },  // Thực hiện trong tuần
-                { wch: 18 },  // Tiến độ
-                { wch: 15 }   // Ngày hoàn thành
+                { wch: 6 },
+                { wch: 18 },
+                { wch: 45 },
+                { wch: 15 },
+                { wch: 45 },
+                { wch: 18 },
+                { wch: 15 }
             ];
             XLSX.utils.book_append_sheet(wb, ws2, "TheoDoiVanBan");
 
