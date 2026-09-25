@@ -516,13 +516,21 @@
             showLoading();
             try {
                 if (editId) {
-                    // Ép kiểu String để tránh so sánh lệch kĩ thuật
-                    const task = db.focusTasks.find(t => String(t.id) === String(editId));
-                    if (task) {
-                        task.field = field;
-                        task.content = content;
-                        task.author = currentUser; // Cập nhật lại người sửa nếu cần
-                        await postToCloud({ action: 'editTask', task: task });
+                    // Ép kiểu String đồng nhất để tìm kiếm chính xác
+                    const taskIndex = db.focusTasks.findIndex(t => String(t.id) === String(editId));
+                    if (taskIndex !== -1) {
+                        const updatedTask = {
+                            ...db.focusTasks[taskIndex],
+                            id: String(editId),
+                            field: field,
+                            content: content,
+                            week: week,
+                            month: monthStr,
+                            year: yearStr,
+                            author: currentUser
+                        };
+                        db.focusTasks[taskIndex] = updatedTask;
+                        await postToCloud({ action: 'editTask', task: updatedTask, id: String(editId) });
                     }
                 } else {
                     const newTask = {
@@ -546,7 +554,7 @@
         }
 
         function editFocusTask(id) {
-            // So sánh kiểu String an toàn
+            // Ép kiểu String để tránh so sánh lệch
             const task = db.focusTasks.find(t => String(t.id) === String(id));
             if (task) {
                 document.getElementById('editingTaskId').value = String(task.id);
@@ -557,7 +565,7 @@
                 document.getElementById('cancelEditTaskBtn').classList.remove('hidden');
 
                 // Cuộn mượt lên khung chỉnh sửa
-                document.getElementById('editingTaskId').parentElement.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('taskFieldInput').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
@@ -565,6 +573,8 @@
             if (confirm('Bạn có chắc chắn muốn xóa hạng mục công việc này?')) {
                 showLoading();
                 try {
+                    // Xóa tại mảng local trước để phản hồi giao diện tức thì
+                    db.focusTasks = db.focusTasks.filter(t => String(t.id) !== String(id));
                     await postToCloud({ action: 'deleteTask', id: String(id) });
                     await loadDataFromCloud();
                 } catch (err) {
@@ -766,7 +776,7 @@
             showLoading();
             try {
                 if (editId) {
-                    await postToCloud({ action: 'editDoc', doc: docData });
+                    await postToCloud({ action: 'editDoc', doc: docData, id: String(editId) });
                 } else {
                     await postToCloud({ action: 'saveDoc', doc: docData });
                 }
@@ -782,6 +792,7 @@
             if (confirm('Bạn có chắc chắn muốn xóa văn bản này?')) {
                 showLoading();
                 try {
+                    db.documents = db.documents.filter(d => String(d.id) !== String(id));
                     await postToCloud({ action: 'deleteDoc', id: String(id) });
                     await loadDataFromCloud();
                 } catch (err) {
