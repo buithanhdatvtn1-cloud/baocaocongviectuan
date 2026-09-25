@@ -154,7 +154,7 @@
                     </div>
 
                     <div class="flex items-center gap-2 sm:gap-3">
-                        <button onclick="loadDataFromCloud()" title="Tải lại dữ liệu" class="bg-blue-600/80 hover:bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow transition">
+                        <button onclick="loadDataFromCloud(true)" title="Tải lại dữ liệu thủ công" class="bg-blue-600/80 hover:bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow transition">
                             <i class="fas fa-sync-alt"></i>
                         </button>
                         <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow flex items-center gap-2 transition active:scale-95">
@@ -325,7 +325,7 @@
         </main>
     </div>
 
-    <!-- SCRIPT ĐỒNG BỘ NÂNG CẤP -->
+    <!-- SCRIPT ĐỒNG BỘ TỰ ĐỘNG THỜI GIAN THỰC -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziyVzQ3ZgddoQZUC_ZqHqaZCx1RyBQIwlAhPjdsyKI9VwEYZob2CG783hQ2uzc6BaT/exec";
 
@@ -339,6 +339,9 @@
         let db = { focusTasks: [], documents: [] };
         let currentFilteredTasks = [];
         let currentFilteredDocs = [];
+
+        // Timer cho việc tự động tải dữ liệu ngầm
+        let autoSyncInterval = null;
 
         function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
@@ -359,6 +362,7 @@
         });
 
         function logout() {
+            if (autoSyncInterval) clearInterval(autoSyncInterval); // Dừng timer đồng bộ khi đăng xuất
             localStorage.removeItem('vnpt_user');
             currentUser = null;
             document.getElementById('appContainer').classList.add('hidden');
@@ -377,7 +381,15 @@
             document.getElementById('currentUsername').textContent = currentUser;
             document.getElementById('userAvatar').textContent = currentUser.charAt(0).toUpperCase();
             document.getElementById('taskAuthorBadge').textContent = currentUser;
-            loadDataFromCloud();
+            
+            // 1. Tải dữ liệu ban đầu (Hiển thị overlay)
+            loadDataFromCloud(true);
+
+            // 2. Thiết lập tự động tải lại dữ liệu ngầm cứ 5 giây một lần (Không hiện overlay)
+            if (autoSyncInterval) clearInterval(autoSyncInterval);
+            autoSyncInterval = setInterval(() => {
+                loadDataFromCloud(false);
+            }, 5000);
         }
 
         async function postToCloud(payload) {
@@ -388,19 +400,22 @@
             });
         }
 
-        async function loadDataFromCloud() {
-            showLoading();
+        // Tải dữ liệu từ Google Sheets Cloud
+        async function loadDataFromCloud(showOverlay = false) {
+            if (showOverlay) showLoading();
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
                 db.focusTasks = data.focusTasks || [];
                 db.documents = data.documents || [];
+                
+                // Cập nhật lại giao diện danh sách
                 filterFocusTasks();
                 filterDocuments();
             } catch (error) {
-                console.error("Lỗi tải dữ liệu:", error);
+                console.error("Lỗi đồng bộ dữ liệu:", error);
             } finally {
-                hideLoading();
+                if (showOverlay) hideLoading();
             }
         }
 
@@ -421,7 +436,6 @@
             showLoading();
             try {
                 if (editId) {
-                    const index = db.focusTasks.findIndex(t => String(t.id) === String(editId));
                     const updatedTask = {
                         id: String(editId),
                         field: field,
@@ -431,11 +445,6 @@
                         content: content,
                         author: currentUser
                     };
-
-                    if (index !== -1) {
-                        db.focusTasks[index] = updatedTask;
-                    }
-
                     await postToCloud({ action: 'editTask', task: updatedTask, id: String(editId) });
                 } else {
                     const newTask = {
@@ -447,12 +456,12 @@
                         content: content,
                         author: currentUser
                     };
-                    db.focusTasks.push(newTask);
                     await postToCloud({ action: 'saveTask', task: newTask });
                 }
 
                 cancelEditTask();
-                filterFocusTasks();
+                // Tải lại dữ liệu trực tiếp từ Cloud để đảm bảo tính đồng bộ
+                await loadDataFromCloud(false);
             } catch (err) {
                 alert("Thao tác thất bại, vui lòng thử lại!");
                 console.error(err);
@@ -479,9 +488,9 @@
             if (confirm('Bạn có chắc chắn muốn xóa hạng mục này?')) {
                 showLoading();
                 try {
-                    db.focusTasks = db.focusTasks.filter(t => String(t.id) !== String(id));
                     await postToCloud({ action: 'deleteTask', id: String(id) });
-                    filterFocusTasks();
+                    // Tải lại dữ liệu trực tiếp từ Cloud
+                    await loadDataFromCloud(false);
                 } catch (err) {
                     alert("Xóa thất bại!");
                 } finally {
