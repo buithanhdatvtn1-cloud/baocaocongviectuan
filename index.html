@@ -85,7 +85,7 @@
                 <p class="text-[11px] text-blue-100 uppercase tracking-widest mt-1 font-medium">Hệ Thống Quản Lý Báo Cáo Công Việc</p>
             </div>
             
-            <form id="loginForm" class="p-6 space-y-4" onsubmit="handleLogin(event)">
+            <form id="loginForm" class="p-6 space-y-4" onsubmit="return false;">
                 <div id="loginError" class="hidden p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs rounded">
                     <i class="fas fa-exclamation-circle mr-1"></i> Tài khoản hoặc mật khẩu không chính xác!
                 </div>
@@ -119,7 +119,7 @@
                         <input type="password" id="loginPass" required placeholder="Nhập mật khẩu..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-vnpt focus:border-vnpt text-xs">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-vnpt hover:bg-vnpt-dark text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition duration-200 flex justify-center items-center gap-2 text-xs uppercase tracking-wider">
+                <button type="button" onclick="doLogin()" class="w-full bg-vnpt hover:bg-vnpt-dark text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition duration-200 flex justify-center items-center gap-2 text-xs uppercase tracking-wider">
                     <i class="fas fa-sign-in-alt"></i> Đăng nhập Hệ Thống
                 </button>
             </form>
@@ -300,9 +300,6 @@
                         </div>
                         <div class="flex flex-wrap items-center gap-3">
                             <input type="week" id="docWeekPicker" value="2026-W38" onchange="filterDocuments()" class="px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-semibold">
-                            <button onclick="openDocModal()" class="bg-vnpt hover:bg-vnpt-dark text-white px-4 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-2">
-                                <i class="fas fa-plus-circle"></i> Thêm Văn Bản
-                            </button>
                         </div>
                     </div>
 
@@ -316,7 +313,6 @@
                                     <th class="p-3 min-w-[180px]">Nội dung thực hiện</th>
                                     <th class="p-3">Tiến độ</th>
                                     <th class="p-3">Ngày hoàn thành</th>
-                                    <th class="p-3 text-center">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="docTableBody" class="divide-y divide-gray-100"></tbody>
@@ -330,3 +326,303 @@
     <!-- SCRIPT XỬ LÝ CHÍNH -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziyVzQ3ZgddoQZUC_ZqHqaZCx1RyBQIwlAhPjdsyKI9VwEYZob2CG783hQ2uzc6BaT/exec";
+
+        const VALID_USERS = ['tvkhoa', 'nhmai', 'chiennv3', 'ndnguyen', 'nguyenvancuong1', 'phanthanhha1', 'ththanh', 'btdat', 'tkt.nan', 'nhquang'];
+        const VALID_PASS = 'Adm@123';
+
+        let currentUser = localStorage.getItem('vnpt_user') || null;
+        let searchType = 'week'; 
+        let currentTab = 'focus';
+
+        let db = { focusTasks: [], documents: [] };
+        let currentFilteredTasks = [];
+        let currentFilteredDocs = [];
+
+        function showLoading(msg = 'Đang đồng bộ dữ liệu...') { 
+            document.getElementById('loadingText').textContent = msg;
+            document.getElementById('loadingOverlay').classList.remove('hidden'); 
+        }
+        function hideLoading() { 
+            document.getElementById('loadingOverlay').classList.add('hidden'); 
+        }
+
+        // ĐĂNG NHẬP THỦ CÔNG
+        function doLogin() {
+            const user = document.getElementById('loginUser').value;
+            const pass = document.getElementById('loginPass').value;
+
+            if (user && VALID_USERS.includes(user) && pass === VALID_PASS) {
+                document.getElementById('loginError').classList.add('hidden');
+                currentUser = user;
+                localStorage.setItem('vnpt_user', user);
+                showMainApp();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('vnpt_user');
+            currentUser = null;
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (currentUser && VALID_USERS.includes(currentUser)) {
+                showMainApp();
+            }
+        });
+
+        function showMainApp() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('currentUsername').textContent = currentUser;
+            document.getElementById('userAvatar').textContent = currentUser.charAt(0).toUpperCase();
+            document.getElementById('taskAuthorBadge').textContent = currentUser;
+            
+            loadDataFromCloud();
+        }
+
+        async function postToCloud(payload) {
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+            } catch(e) {
+                console.warn("Lỗi gửi dữ liệu lên Cloud", e);
+            }
+        }
+
+        // Tải dữ liệu từ Google Apps Script với Timeout chống treo ứng dụng
+        async function loadDataFromCloud() {
+            showLoading('Đang tải dữ liệu công việc...');
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000); // Tự hủy request sau 8s nếu mạng lag
+
+                const freshUrl = `${SCRIPT_URL}?t=${new Date().getTime()}`;
+                const response = await fetch(freshUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                const data = await response.json();
+                db.focusTasks = data.focusTasks || [];
+                db.documents = data.documents || [];
+            } catch (error) {
+                console.warn("Chưa tải được dữ liệu Cloud:", error);
+            } finally {
+                filterFocusTasks();
+                filterDocuments();
+                hideLoading();
+            }
+        }
+
+        async function saveFocusTask() {
+            const field = document.getElementById('taskFieldInput').value;
+            const week = document.getElementById('toWeekPicker').value || '2026-W38';
+            const content = document.getElementById('taskContentInput').value.trim();
+            const editId = document.getElementById('editingTaskId').value;
+
+            if (!content) {
+                alert('Vui lòng nhập nội dung chi tiết công việc!');
+                return;
+            }
+
+            const yearStr = week.split('-W')[0] || '2026';
+            const monthStr = `${yearStr}-09`;
+
+            showLoading('Đang lưu công việc...');
+            
+            if (editId) {
+                const index = db.focusTasks.findIndex(t => String(t.id) === String(editId));
+                const updatedTask = { id: String(editId), field, week, month: monthStr, year: yearStr, content, author: currentUser };
+                if (index !== -1) db.focusTasks[index] = updatedTask;
+                postToCloud({ action: 'editTask', task: updatedTask, id: String(editId) });
+            } else {
+                const newTask = { id: String(Date.now()), field, week, month: monthStr, year: yearStr, content, author: currentUser };
+                db.focusTasks.push(newTask);
+                postToCloud({ action: 'saveTask', task: newTask });
+            }
+
+            cancelEditTask();
+            filterFocusTasks();
+            hideLoading();
+        }
+
+        function editFocusTask(id) {
+            const task = db.focusTasks.find(t => String(t.id) === String(id));
+            if (task) {
+                document.getElementById('editingTaskId').value = String(task.id);
+                document.getElementById('taskFieldInput').value = task.field;
+                document.getElementById('taskContentInput').value = task.content;
+
+                document.getElementById('saveTaskBtnText').textContent = 'Cập Nhật Mục Này';
+                document.getElementById('cancelEditTaskBtn').classList.remove('hidden');
+
+                window.scrollTo({ top: 150, behavior: 'smooth' });
+            }
+        }
+
+        async function deleteFocusTask(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa hạng mục này?')) {
+                showLoading('Đang xóa...');
+                db.focusTasks = db.focusTasks.filter(t => String(t.id) !== String(id));
+                postToCloud({ action: 'deleteTask', id: String(id) });
+                filterFocusTasks();
+                hideLoading();
+            }
+        }
+
+        function cancelEditTask() {
+            document.getElementById('editingTaskId').value = '';
+            document.getElementById('taskContentInput').value = '';
+            document.getElementById('taskFieldInput').value = 'Quản lý và VHKT';
+            document.getElementById('saveTaskBtnText').textContent = 'Lưu Công Việc';
+            document.getElementById('cancelEditTaskBtn').classList.add('hidden');
+        }
+
+        function filterFocusTasks() {
+            const fromVal = document.getElementById('fromWeekPicker').value;
+            const toVal = document.getElementById('toWeekPicker').value;
+            const selectedField = document.getElementById('fieldSelect').value;
+            const searchText = document.getElementById('focusSearchInput').value.toLowerCase().trim();
+            const container = document.getElementById('focusTasksContainer');
+            container.innerHTML = '';
+
+            currentFilteredTasks = db.focusTasks.filter(task => {
+                const matchesField = (selectedField === 'ALL') || (task.field === selectedField);
+                const matchesSearch = !searchText || String(task.content).toLowerCase().includes(searchText);
+
+                let matchesTime = true;
+                if (searchType === 'week') {
+                    if (fromVal && task.week < fromVal) matchesTime = false;
+                    if (toVal && task.week > toVal) matchesTime = false;
+                }
+
+                return matchesField && matchesSearch && matchesTime;
+            });
+
+            document.getElementById('focusCountBadge').textContent = `${currentFilteredTasks.length} công việc`;
+
+            if (currentFilteredTasks.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-xs text-gray-400">Không có dữ liệu phù hợp.</div>`;
+                return;
+            }
+
+            currentFilteredTasks.forEach(task => {
+                const taskIdStr = String(task.id);
+                const div = document.createElement('div');
+                div.className = 'bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4';
+                div.innerHTML = `
+                    <div class="space-y-1 flex-grow">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-blue-50 text-vnpt">${task.field || 'Chưa phân loại'}</span>
+                            <span class="text-[11px] text-gray-400"><i class="far fa-calendar-alt"></i> ${task.week || ''}</span>
+                        </div>
+                        <p class="text-xs text-gray-800 font-medium">${String(task.content).replace(/\n/g, '<br>')}</p>
+                        <div class="text-[10px] text-gray-400">Người nhập: ${task.author || 'User'}</div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="editFocusTask('${taskIdStr}')" class="text-xs bg-blue-50 text-vnpt hover:bg-vnpt hover:text-white px-3 py-1.5 rounded-lg font-semibold transition">
+                            <i class="fas fa-edit"></i> Sửa
+                        </button>
+                        <button onclick="deleteFocusTask('${taskIdStr}')" class="text-xs bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg font-semibold transition">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function filterDocuments() {
+            currentFilteredDocs = db.documents || [];
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-white', 'text-white');
+                btn.classList.add('border-transparent', 'text-blue-200');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-blue-200');
+                activeBtn.classList.add('border-white', 'text-white');
+            }
+        }
+
+        function setSearchType(type) {
+            searchType = type;
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-vnpt', 'font-bold');
+                btn.classList.add('text-gray-600');
+            });
+            const activeTypeBtn = document.getElementById(`type-${type}`);
+            if (activeTypeBtn) {
+                activeTypeBtn.classList.add('bg-white', 'shadow-sm', 'text-vnpt', 'font-bold');
+                activeTypeBtn.classList.remove('text-gray-600');
+            }
+            filterFocusTasks();
+        }
+
+        function exportToExcel() {
+            if (typeof XLSX === 'undefined') {
+                alert("Thư viện SheetJS chưa được tải xong, vui lòng thử lại sau giây lát!");
+                return;
+            }
+
+            let exportData = [];
+            let fileName = "";
+
+            if (currentTab === 'focus') {
+                const tasksToExport = currentFilteredTasks.length > 0 ? currentFilteredTasks : db.focusTasks;
+                if (tasksToExport.length === 0) {
+                    alert("Không có dữ liệu công việc trọng tâm để xuất Excel!");
+                    return;
+                }
+
+                exportData = tasksToExport.map((item, index) => ({
+                    "STT": index + 1,
+                    "Lĩnh vực": item.field || "",
+                    "Thời gian (Tuần/Tháng/Năm)": item.week || item.month || item.year || "",
+                    "Nội dung công việc": item.content || "",
+                    "Người nhập": item.author || ""
+                }));
+
+                fileName = `Bao_Cao_Cong_Viec_Trong_Tam_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            } else {
+                const docsToExport = currentFilteredDocs.length > 0 ? currentFilteredDocs : db.documents;
+                if (docsToExport.length === 0) {
+                    alert("Không có dữ liệu văn bản để xuất Excel!");
+                    return;
+                }
+
+                exportData = docsToExport.map((item, index) => ({
+                    "STT": index + 1,
+                    "Số văn bản": item.number || "",
+                    "Nội dung văn bản": item.title || "",
+                    "Hạn hoàn thành": item.deadline || "",
+                    "Nội dung thực hiện": item.implementation || "",
+                    "Tiến độ": item.progress || "",
+                    "Ngày hoàn thành": item.completedDate || ""
+                }));
+
+                fileName = `Bao_Cao_Theo_Doi_Van_Ban_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            }
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCao");
+
+            XLSX.writeFile(workbook, fileName);
+        }
+    </script>
+</body>
+</html>
